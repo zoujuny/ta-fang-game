@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>塔防游戏</title>
+    <style>
+      html, body { margin: 0; padding: 0; background: #1a1a2e; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+      #game { display: flex; justify-content: center; align-items: center; height: 100vh; }
+      #hud {
+        position: fixed; top: 0; left: 0; right: 0; height: 80px;
+        background: #111827; color: #fff; display: flex; align-items: center;
+        padding: 0 12px; gap: 10px; z-index: 10; box-sizing: border-box;
+        font-size: 16px; flex-wrap: wrap;
+      }
+      .stat { padding: 4px 10px; border-radius: 4px; white-space: nowrap; }
+      .stat.gold { color: #fde047; }
+      .stat.lives { color: #fca5a5; }
+      .stat.wave { color: #a7f3d0; }
+      .stat.level { color: #93c5fd; }
+      .tower-btn {
+        width: 78px; height: 40px; border: 2px solid #4ade80; border-radius: 4px;
+        background: rgba(74, 222, 128, 0.25); color: #fff; cursor: pointer;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-size: 13px; user-select: none;
+      }
+      .tower-btn[data-kind="cannon"] { border-color: #ef4444; background: rgba(239, 68, 68, 0.25); }
+      .tower-btn[data-kind="frost"] { border-color: #60a5fa; background: rgba(96, 165, 250, 0.25); }
+      .tower-btn[data-kind="fire"] { border-color: #fb923c; background: rgba(251, 146, 60, 0.25); }
+      .tower-btn[data-kind="shock"] { border-color: #a855f7; background: rgba(168, 85, 247, 0.25); }
+      .tower-btn.selected { border-width: 3px; border-color: #fff; }
+      .tower-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+      .tower-btn .cost { font-size: 11px; color: #fde047; }
+      #start-btn {
+        width: 130px; height: 40px; border: 2px solid #15803d;
+        background: #22c55e; color: #fff; border-radius: 4px; cursor: pointer;
+        font-size: 14px; font-weight: bold; white-space: nowrap;
+      }
+      #start-btn:disabled { background: #6b7280; border-color: #374151; cursor: default; }
+      .level-select { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+      .lvl-btn {
+        width: 28px; height: 24px; font-size: 11px; padding: 0;
+        border: 1px solid #4b5563; background: #1f2937; color: #fff;
+        border-radius: 3px; cursor: pointer;
+      }
+      .lvl-btn.active { background: #2563eb; border-color: #93c5fd; font-weight: bold; }
+      .lvl-btn:hover { background: #374151; }
+      #legend {
+        position: fixed; left: 12px; bottom: 12px; background: rgba(17,24,39,0.85);
+        color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 12px;
+        line-height: 1.6; z-index: 10;
+      }
+      #legend .key { color: #fde047; }
+      #overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none;
+        align-items: center; justify-content: center; flex-direction: column;
+        color: #fff; z-index: 20; font-family: -apple-system, sans-serif;
+      }
+      #overlay.show { display: flex; }
+      #overlay h1 { font-size: 64px; margin: 0; }
+      #overlay.win h1 { color: #4ade80; }
+      #overlay.lose h1 { color: #ef4444; }
+      #overlay p { font-size: 18px; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">
+      <div class="stat level">关卡: <span id="level-name">关卡 1</span></div>
+      <div class="stat gold">金币: <span id="gold">0</span></div>
+      <div class="stat lives">生命: <span id="lives">0</span></div>
+      <div class="stat wave">波次: <span id="wave">0/0</span></div>
+      <div class="level-select">
+        <button class="lvl-btn active" data-level="level1" title="蜿蜒">1</button>
+        <button class="lvl-btn" data-level="level2" title="三路汇合">2</button>
+        <button class="lvl-btn" data-level="level3" title="平行">3</button>
+        <button class="lvl-btn" data-level="level4" title="U 形">4</button>
+        <button class="lvl-btn" data-level="level5" title="螺旋">5</button>
+        <button class="lvl-btn" data-level="level6" title="X 形">6</button>
+        <button class="lvl-btn" data-level="level7" title="8 字">7</button>
+        <button class="lvl-btn" data-level="level8" title="辐射">8</button>
+        <button class="lvl-btn" data-level="level9" title="菱形">9</button>
+        <button class="lvl-btn" data-level="level10" title="迷宫">10</button>
+      </div>
+      <div class="tower-btn" data-kind="arrow" id="btn-arrow">
+        <div>箭塔</div><div class="cost">50金</div>
+      </div>
+      <div class="tower-btn" data-kind="cannon" id="btn-cannon">
+        <div>炮塔</div><div class="cost">120金</div>
+      </div>
+      <div class="tower-btn" data-kind="frost" id="btn-frost">
+        <div>冰塔</div><div class="cost">80金</div>
+      </div>
+      <div class="tower-btn" data-kind="fire" id="btn-fire">
+        <div>火塔</div><div class="cost">100金</div>
+      </div>
+      <div class="tower-btn" data-kind="shock" id="btn-shock">
+        <div>雷塔</div><div class="cost">150金</div>
+      </div>
+      <button id="start-btn">开始下一波</button>
+    </div>
+    <div id="game"></div>
+    <div id="legend">
+      <div><span class="key">冰+火 = 融化</span> (范围溅射)</div>
+      <div><span class="key">火+雷 = 超载</span> (小爆 + 链)</div>
+      <div><span class="key">雷+火 = 超导</span> (眩晕)</div>
+    </div>
+    <div id="overlay"><h1></h1><p>刷新页面重玩</p></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

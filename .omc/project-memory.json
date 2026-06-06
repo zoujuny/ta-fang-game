@@ -1,0 +1,318 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1780739948160,
+  "projectRoot": "/Users/zouwj/MyProjects/labs/ta-fang-game",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npx tsc --noEmit 2>&1 | tail -3; echo \"---tests---\"; npx vitest run 2>&1 | tail -5",
+    "testCommand": "npx vitest run 2>&1 | tail -5",
+    "lintCommand": null,
+    "devCommand": "npm run dev",
+    "scripts": {
+      "serve": "node scripts/serve.mjs",
+      "dev": "node scripts/serve.mjs",
+      "test": "node --test src/**/*.test.mjs"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "scripts",
+      "src"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 0,
+      "lastAccessed": 1780739948131,
+      "keyFiles": []
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 2,
+      "lastAccessed": 1780739948131,
+      "keyFiles": [
+        "main.mjs"
+      ]
+    },
+    "src/config": {
+      "path": "src/config",
+      "purpose": "Configuration files",
+      "fileCount": 1,
+      "lastAccessed": 1780739948144,
+      "keyFiles": [
+        "index.mjs"
+      ]
+    },
+    "src/tests": {
+      "path": "src/tests",
+      "purpose": "Test files",
+      "fileCount": 0,
+      "lastAccessed": 1780739948144,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src/scenes/GameScene.ts",
+      "accessCount": 18,
+      "lastAccessed": 1780751694765,
+      "type": "file"
+    },
+    {
+      "path": "src/main.ts",
+      "accessCount": 16,
+      "lastAccessed": 1780751591218,
+      "type": "file"
+    },
+    {
+      "path": "src/entities/Tower.ts",
+      "accessCount": 11,
+      "lastAccessed": 1780746601965,
+      "type": "file"
+    },
+    {
+      "path": "src/entities/Projectile.ts",
+      "accessCount": 10,
+      "lastAccessed": 1780747029207,
+      "type": "file"
+    },
+    {
+      "path": "vite.config.ts",
+      "accessCount": 9,
+      "lastAccessed": 1780748834118,
+      "type": "file"
+    },
+    {
+      "path": "src/config/grid.ts",
+      "accessCount": 8,
+      "lastAccessed": 1780753104874,
+      "type": "file"
+    },
+    {
+      "path": "index.html",
+      "accessCount": 6,
+      "lastAccessed": 1780751573446,
+      "type": "file"
+    },
+    {
+      "path": "src/ui/HUD.ts",
+      "accessCount": 4,
+      "lastAccessed": 1780741367699,
+      "type": "file"
+    },
+    {
+      "path": "src/tests/elements.test.ts",
+      "accessCount": 4,
+      "lastAccessed": 1780747090372,
+      "type": "file"
+    },
+    {
+      "path": "src/entities/Monster.ts",
+      "accessCount": 4,
+      "lastAccessed": 1780751540313,
+      "type": "file"
+    },
+    {
+      "path": "src/systems/elements.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780747003667,
+      "type": "file"
+    },
+    {
+      "path": ".claude/launch.json",
+      "accessCount": 3,
+      "lastAccessed": 1780748802422,
+      "type": "file"
+    },
+    {
+      "path": "src/tests/path.test.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780753127074,
+      "type": "file"
+    },
+    {
+      "path": "src/config/towers.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780745742153,
+      "type": "file"
+    },
+    {
+      "path": "src/systems/path.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780745783141,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 1,
+      "lastAccessed": 1780739983675,
+      "type": "file"
+    },
+    {
+      "path": "tsconfig.json",
+      "accessCount": 1,
+      "lastAccessed": 1780739987313,
+      "type": "file"
+    },
+    {
+      "path": "src/config/monsters.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780740033415,
+      "type": "file"
+    },
+    {
+      "path": "src/systems/combat.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780740047139,
+      "type": "file"
+    },
+    {
+      "path": "src/systems/wave.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780740057106,
+      "type": "file"
+    },
+    {
+      "path": "src/tests/combat.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780740073180,
+      "type": "file"
+    },
+    {
+      "path": "src/tests/wave.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780740087716,
+      "type": "file"
+    },
+    {
+      "path": ".claude/ta-fang-game-preview.png",
+      "accessCount": 1,
+      "lastAccessed": 1780741438239,
+      "type": "file"
+    },
+    {
+      "path": ".claude/ta-fang-game-preview2.png",
+      "accessCount": 1,
+      "lastAccessed": 1780741597840,
+      "type": "file"
+    },
+    {
+      "path": ".claude/ta-fang-game-preview3.png",
+      "accessCount": 1,
+      "lastAccessed": 1780745044681,
+      "type": "file"
+    },
+    {
+      "path": ".claude/ta-fang-game-preview4.png",
+      "accessCount": 1,
+      "lastAccessed": 1780745077825,
+      "type": "file"
+    },
+    {
+      "path": ".claude/lvl1.png",
+      "accessCount": 1,
+      "lastAccessed": 1780746070201,
+      "type": "file"
+    },
+    {
+      "path": ".claude/lvl2.png",
+      "accessCount": 1,
+      "lastAccessed": 1780746087748,
+      "type": "file"
+    },
+    {
+      "path": ".claude/lvl2-combat.png",
+      "accessCount": 1,
+      "lastAccessed": 1780746274674,
+      "type": "file"
+    },
+    {
+      "path": ".claude/lvl2-now.png",
+      "accessCount": 1,
+      "lastAccessed": 1780746308593,
+      "type": "file"
+    },
+    {
+      "path": ".claude/lvl1-elements.png",
+      "accessCount": 1,
+      "lastAccessed": 1780746353540,
+      "type": "file"
+    },
+    {
+      "path": ".claude/muzzle.png",
+      "accessCount": 1,
+      "lastAccessed": 1780746626521,
+      "type": "file"
+    },
+    {
+      "path": ".claude/melt.png",
+      "accessCount": 1,
+      "lastAccessed": 1780747127989,
+      "type": "file"
+    },
+    {
+      "path": ".claude/port5177.png",
+      "accessCount": 1,
+      "lastAccessed": 1780748884226,
+      "type": "file"
+    },
+    {
+      "path": "src/tests/grid.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780751616812,
+      "type": "file"
+    },
+    {
+      "path": ".claude/lvl1-10.png",
+      "accessCount": 1,
+      "lastAccessed": 1780751639648,
+      "type": "file"
+    },
+    {
+      "path": ".claude/lvl1-clean.png",
+      "accessCount": 1,
+      "lastAccessed": 1780751708001,
+      "type": "file"
+    },
+    {
+      "path": ".claude/lvl10.png",
+      "accessCount": 1,
+      "lastAccessed": 1780751739956,
+      "type": "file"
+    },
+    {
+      "path": ".claude/lvl2-y.png",
+      "accessCount": 1,
+      "lastAccessed": 1780753151271,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
