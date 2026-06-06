@@ -6,6 +6,7 @@ import { Tower } from '../entities/Tower';
 import { Projectile, type ReactionEvent } from '../entities/Projectile';
 import { createWaveRuntime, tickWaveSpawns, isWaveComplete, type WaveRuntime } from '../systems/wave';
 import { WAVES } from '../config/monsters';
+import { cameraShake, cameraFlash } from '../systems/fx';
 
 interface SceneData {
   onState: (s: GameState) => void;
@@ -294,6 +295,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onReaction(evt: ReactionEvent, target: Monster, now: number) {
+    // 反应触发 → 屏幕震 + 色变
+    cameraShake(this, 0.004, 150);
+    const flashColors: Record<string, number> = { melt: 0xfb923c, overload: 0xfde047, supercharge: 0x67e8f9 };
+    cameraFlash(this, flashColors[evt.name] ?? 0xffffff, 80, 0.2);
     if (evt.name === 'melt' && evt.splashRadius) {
       for (const m of this.monsters) {
         if (!m.alive) continue;

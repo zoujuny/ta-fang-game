@@ -18,7 +18,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "npx tsc --noEmit 2>&1 | tail -3; echo \"---tests---\"; npx vitest run 2>&1 | tail -5",
+    "buildCommand": "npx tsc --noEmit 2>&1 | tail -5",
     "testCommand": "npx vitest run 2>&1 | tail -5",
     "lintCommand": null,
     "devCommand": "npm run dev",
@@ -81,8 +81,8 @@
   "hotPaths": [
     {
       "path": "src/scenes/GameScene.ts",
-      "accessCount": 18,
-      "lastAccessed": 1780751694765,
+      "accessCount": 21,
+      "lastAccessed": 1780755830672,
       "type": "file"
     },
     {
@@ -92,15 +92,21 @@
       "type": "file"
     },
     {
-      "path": "src/entities/Tower.ts",
-      "accessCount": 11,
-      "lastAccessed": 1780746601965,
+      "path": "src/entities/Projectile.ts",
+      "accessCount": 15,
+      "lastAccessed": 1780755846218,
       "type": "file"
     },
     {
-      "path": "src/entities/Projectile.ts",
+      "path": "src/entities/Tower.ts",
+      "accessCount": 13,
+      "lastAccessed": 1780755729769,
+      "type": "file"
+    },
+    {
+      "path": "src/entities/Monster.ts",
       "accessCount": 10,
-      "lastAccessed": 1780747029207,
+      "lastAccessed": 1780755825444,
       "type": "file"
     },
     {
@@ -134,9 +140,9 @@
       "type": "file"
     },
     {
-      "path": "src/entities/Monster.ts",
+      "path": "src/config/monsters.ts",
       "accessCount": 4,
-      "lastAccessed": 1780751540313,
+      "lastAccessed": 1780755842570,
       "type": "file"
     },
     {
@@ -179,12 +185,6 @@
       "path": "tsconfig.json",
       "accessCount": 1,
       "lastAccessed": 1780739987313,
-      "type": "file"
-    },
-    {
-      "path": "src/config/monsters.ts",
-      "accessCount": 1,
-      "lastAccessed": 1780740033415,
       "type": "file"
     },
     {
@@ -311,6 +311,18 @@
       "path": ".claude/lvl2-y.png",
       "accessCount": 1,
       "lastAccessed": 1780753151271,
+      "type": "file"
+    },
+    {
+      "path": "src/systems/fx.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780755693048,
+      "type": "file"
+    },
+    {
+      "path": ".claude/fx-1.png",
+      "accessCount": 1,
+      "lastAccessed": 1780756189509,
       "type": "file"
     }
   ],

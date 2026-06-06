@@ -2,6 +2,7 @@ import { TOWERS, type TowerKind, type Element } from '../config/towers';
 import { inRange, pickTarget } from '../systems/combat';
 import { Monster } from './Monster';
 import { Projectile } from './Projectile';
+import { spawnMuzzleFlash, spawnBurst } from '../systems/fx';
 
 export class Tower {
   public kind: TowerKind;
@@ -87,6 +88,9 @@ export class Tower {
     const muzzleDist = 34;
     const mx = this.x + cos * muzzleDist;
     const my = this.y + sin * muzzleDist;
+    // 炮口闪光 + 烟雾粒子
+    spawnMuzzleFlash(scene, mx, my, this.color, 10);
+    spawnBurst(scene, { x: mx, y: my, count: 6, color: this.projectileColor, speed: 80, life: 280, size: 2 });
     return new Projectile(scene, mx, my, this.target, this.projectileSpeed, this.damage, this.projectileColor, {
       splashRadius: this.splashRadius,
       slowFactor: this.slowFactor,

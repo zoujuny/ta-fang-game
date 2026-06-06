@@ -2,6 +2,7 @@ import { Monster } from './Monster';
 import { applySplash } from '../systems/combat';
 import type { Element } from '../config/towers';
 import { pickReactionByElement, ELEMENT_TO_STATUS, type StatusEffect } from '../systems/elements';
+import { spawnFloater } from '../systems/fx';
 
 export interface ProjectileOptions {
   splashRadius: number;
@@ -36,8 +37,10 @@ export class Projectile {
   public reactionEvent: ReactionEvent | null = null;
 
   private sprite: Phaser.GameObjects.Arc;
+  private scene: Phaser.Scene;
 
   constructor(scene: Phaser.Scene, x: number, y: number, target: Monster, speed: number, damage: number, color: number, options: ProjectileOptions) {
+    this.scene = scene;
     this.x = x;
     this.y = y;
     this.target = target;
@@ -78,7 +81,18 @@ export class Projectile {
     if (this.target && this.target.alive) {
       const preStatuses = new Set(this.target.statuses.keys());
 
+      const beforeHp = this.target.hp;
       this.target.takeDamage(this.damage);
+      const dealt = Math.max(0, beforeHp - this.target.hp);
+      if (dealt > 0) {
+        spawnFloater(this.scene, {
+          x: this.target.x,
+          y: this.target.y - this.target.radius - 8,
+          text: `-${Math.round(dealt)}`,
+          color: 0xffffff,
+          fontSize: 16,
+        });
+      }
       if (this.options.slowFactor < 1 && this.options.slowDuration > 0) {
         this.target.applySlow(this.options.slowFactor, this.options.slowDuration, now);
       }
@@ -106,7 +120,20 @@ export class Projectile {
           stunMs: r.stunMs,
         };
         reaction = evt;
+        const beforeReactionHp = this.target.hp;
         this.target.takeDamage(r.damage);
+        const reactionDealt = Math.max(0, beforeReactionHp - this.target.hp);
+        const reactionLabels: Record<string, string> = { melt: '融化!', overload: '超载!', supercharge: '超导!' };
+        const reactionColors: Record<string, number> = { melt: 0xfb923c, overload: 0xfde047, supercharge: 0x67e8f9 };
+        spawnFloater(this.scene, {
+          x: this.target.x,
+          y: this.target.y - this.target.radius - 28,
+          text: `${reactionLabels[r.name]} -${Math.round(reactionDealt)}`,
+          color: reactionColors[r.name] ?? 0xffffff,
+          fontSize: 20,
+          rise: 50,
+          duration: 900,
+        });
         if (r.stunMs) {
           this.target.stunnedUntil = now + r.stunMs;
         }

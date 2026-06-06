@@ -1,7 +1,8 @@
-import { MONSTERS, type MonsterKind } from '../config/monsters';
+import { MONSTERS, BOSS, type MonsterKind } from '../config/monsters';
 import { distanceAlongPath, totalPathLength } from '../systems/path';
 import { effectiveDamage } from '../systems/combat';
 import { tickStatus, type StatusEffect, type StatusKind } from '../systems/elements';
+import { spawnBurst, popIn, shrinkOut, spawnFloater } from '../systems/fx';
 
 export class Monster {
   public kind: MonsterKind;
@@ -47,7 +48,7 @@ export class Monster {
     this.path = path;
     this.pathIndex = pathIndex;
     this.pathLen = totalPathLength(path);
-    const cfg = MONSTERS[kind];
+    const cfg = kind === 'boss' ? BOSS : MONSTERS[kind];
     this.hp = cfg.hp * scale.hpMul;
     this.maxHp = this.hp;
     this.speed = cfg.speed * scale.speedMul;
@@ -69,6 +70,9 @@ export class Monster {
     this.hpBg = scene.add.rectangle(0, -this.radius - 6, this.radius * 2, 3, 0x000000, 0.6).setOrigin(0.5);
     this.hpBar = scene.add.rectangle(0, -this.radius - 6, this.radius * 2, 3, 0x4ade80).setOrigin(0.5);
     this.container.add([this.body, this.slowTint, this.burnTint, this.shockTint, this.hpBg, this.hpBar]);
+    // 出生弹入动画
+    this.container.setScale(0);
+    popIn(this.container, 350);
   }
 
   applySlow(factor: number, durationMs: number, now: number) {
@@ -108,6 +112,7 @@ export class Monster {
     if (this.hp <= 0) {
       this.hp = 0;
       this.alive = false;
+      this.playDeathFx();
     }
   }
 
@@ -156,6 +161,27 @@ export class Monster {
       this.reactionText?.destroy();
       this.reactionText = null;
     }
+  }
+
+  private deathFxPlayed = false;
+  private playDeathFx() {
+    if (this.deathFxPlayed) return;
+    this.deathFxPlayed = true;
+    // 死亡: 缩到 0 + 4 个颜色碎片 + 金币飘字
+    spawnBurst(this.scene, { x: this.x, y: this.y, count: 6, color: this.color, speed: 100, life: 400, size: 3 });
+    if (this.bounty > 0) {
+      spawnFloater(this.scene, {
+        x: this.x,
+        y: this.y - this.radius - 4,
+        text: `+${Math.round(this.bounty)}`,
+        color: 0xfde047,
+        fontSize: 14,
+        rise: 24,
+        duration: 800,
+      });
+    }
+    // 渐隐动画
+    shrinkOut(this.container, 200);
   }
 
   destroy() {

@@ -1,4 +1,4 @@
-export type MonsterKind = 'orc' | 'bat' | 'golem';
+export type MonsterKind = 'orc' | 'bat' | 'golem' | 'boss';
 
 export interface MonsterConfig {
   kind: MonsterKind;
@@ -13,6 +13,17 @@ export interface MonsterConfig {
 }
 
 export const MONSTERS: Record<MonsterKind, MonsterConfig> = {
+  boss: {
+    kind: 'boss',
+    name: 'BOSS',
+    hp: 1500,
+    speed: 28,
+    bounty: 200,
+    damage: 8,
+    resistance: 0.5,
+    color: 0xdc2626,
+    radius: 26,
+  },
   orc: {
     kind: 'orc',
     name: '兽人',
@@ -95,6 +106,20 @@ export const WAVES: WaveDef[] = [
     spawns: [
       { kind: 'golem', count: 4, interval: 1500, delay: 0 },
       { kind: 'bat', count: 15, interval: 350, delay: 500 },
+      { kind: 'boss', count: 1, interval: 1000, delay: 12000 },
     ],
   },
 ];
+
+// BOSS 怪物的特殊配置 (不算入 MONSTERS 字典, 在 GameScene 临时构造)
+export const BOSS = {
+  kind: 'boss' as const,
+  name: 'BOSS · 炎魔',
+  hp: 1500,
+  speed: 28,
+  bounty: 200,
+  damage: 8,
+  resistance: 0.5,
+  color: 0xdc2626,
+  radius: 26,
+};
