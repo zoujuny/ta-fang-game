@@ -51,6 +51,9 @@ export class Tower {
   public target: Monster | null = null;
   public baseCost: number;
   public totalSpent: number;
+  public buffUntil = 0;
+  public buffFactor = 1;
+  public lastBuffTickAt = 0;
 
   private container: Phaser.GameObjects.Container;
   private base: Phaser.GameObjects.Rectangle;
@@ -164,7 +167,17 @@ export class Tower {
   }
 
   canFire(now: number): boolean {
-    return now - this.lastFiredAt >= this.fireInterval;
+    const eff = now < this.buffUntil ? this.buffFactor : 1;
+    return now - this.lastFiredAt >= this.fireInterval * eff;
+  }
+
+  // 神圣塔用: 给范围友军塔施加速 buff (fireInterval × 0.7)
+  applyBuff(factor: number, durationMs: number, now: number) {
+    const expire = now + durationMs;
+    if (expire > this.buffUntil) {
+      this.buffUntil = expire;
+      this.buffFactor = factor;
+    }
   }
 
   fire(scene: Phaser.Scene, now: number): Projectile | null {

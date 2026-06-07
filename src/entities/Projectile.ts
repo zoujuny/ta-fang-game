@@ -81,16 +81,20 @@ export class Projectile {
     if (this.target && this.target.alive) {
       const preStatuses = new Set(this.target.statuses.keys());
 
+      // 暗塔 curse 增益: 若目标已被诅咒, 本次受击 +50%
+      const curseBonus = this.target.consumeCurse(now);
+      const finalDmg = this.damage * (1 + curseBonus);
+
       const beforeHp = this.target.hp;
-      this.target.takeDamage(this.damage);
+      this.target.takeDamage(finalDmg);
       const dealt = Math.max(0, beforeHp - this.target.hp);
       if (dealt > 0) {
         spawnFloater(this.scene, {
           x: this.target.x,
           y: this.target.y - this.target.radius - 8,
-          text: `-${Math.round(dealt)}`,
-          color: 0xffffff,
-          fontSize: 16,
+          text: curseBonus > 0 ? `-${Math.round(dealt)} 易伤!` : `-${Math.round(dealt)}`,
+          color: curseBonus > 0 ? 0xa855f7 : 0xffffff,
+          fontSize: curseBonus > 0 ? 17 : 16,
         });
       }
       if (this.options.slowFactor < 1 && this.options.slowDuration > 0) {
@@ -111,6 +115,10 @@ export class Projectile {
       if (this.options.element === 'poison' && this.options.burnDps > 0) {
         const eff: StatusEffect = { kind: 'poison', until: now + this.options.burnDuration, dps: this.options.burnDps };
         this.target.applyStatus('poison', eff);
+      }
+      if (this.options.element === 'dark') {
+        // 暗塔: 施加 curse (3s) — 后续受击 +50% 伤害
+        this.target.applyCurse(now, 3000);
       }
       // 反应检测: 新元素 + 预快照中的已有状态
       const r = pickReactionByElement(this.options.element, preStatuses);

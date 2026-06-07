@@ -23,6 +23,7 @@ export class Monster {
   public slowUntil = 0;
   public slowFactor = 1;
   public stunnedUntil = 0;
+  public cursedUntil = 0;
 
   public pathIndex: number;
   public path: Array<{ x: number; y: number }>;
@@ -92,6 +93,21 @@ export class Monster {
 
   applyStatus(kind: StatusKind, effect: StatusEffect) {
     this.statuses.set(kind, effect);
+  }
+
+  // 暗塔 debuff: 后续受击 +50% 伤害
+  applyCurse(now: number, durationMs: number) {
+    const expire = now + durationMs;
+    if (expire > this.cursedUntil) this.cursedUntil = expire;
+  }
+
+  // takeDamage 时调用, 返回额外伤害倍率 (e.g. 0.5)
+  consumeCurse(now: number): number {
+    if (now < this.cursedUntil) {
+      this.cursedUntil = 0;
+      return 0.5;
+    }
+    return 0;
   }
 
   triggerReaction(name: string, durationMs: number, now: number) {

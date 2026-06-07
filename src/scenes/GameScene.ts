@@ -328,6 +328,25 @@ export class GameScene extends Phaser.Scene {
       if (p) this.projectiles.push(p);
     }
 
+    // 神圣塔: 每 1.5s 给范围友军塔施加速 buff
+    const HOLY_RADIUS = 80;
+    const HOLY_FACTOR = 0.7;
+    const HOLY_DURATION = 2000;
+    const HOLY_TICK = 1500;
+    for (const t of this.towers) {
+      if (t.kind !== 'holy') continue;
+      if (now - t.lastBuffTickAt < HOLY_TICK) continue;
+      t.lastBuffTickAt = now;
+      for (const other of this.towers) {
+        if (other === t) continue;
+        const dx = other.x - t.x;
+        const dy = other.y - t.y;
+        if (dx * dx + dy * dy <= HOLY_RADIUS * HOLY_RADIUS) {
+          other.applyBuff(HOLY_FACTOR, HOLY_DURATION, now);
+        }
+      }
+    }
+
     for (const p of this.projectiles) p.update(dt);
 
     // 解析命中 + 元素反应

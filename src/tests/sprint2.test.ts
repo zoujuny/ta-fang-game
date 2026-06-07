@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loadProgress, saveProgress, markCleared, isLevelUnlocked } from '../systems/progress';
+import { loadProgress, markCleared, isLevelUnlocked } from '../systems/progress';
 import { pickReaction, pickReactionByElement, tickStatus } from '../systems/elements';
 import { TOWERS } from '../config/towers';
 
