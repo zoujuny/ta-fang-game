@@ -10,6 +10,7 @@ export interface MonsterConfig {
   resistance?: number;  // 0..1 damage reduction
   color: number;
   radius: number;
+  emoji: string;
 }
 
 export const MONSTERS: Record<MonsterKind, MonsterConfig> = {
@@ -23,6 +24,7 @@ export const MONSTERS: Record<MonsterKind, MonsterConfig> = {
     resistance: 0.5,
     color: 0xdc2626,
     radius: 26,
+    emoji: '😈',
   },
   orc: {
     kind: 'orc',
@@ -33,6 +35,7 @@ export const MONSTERS: Record<MonsterKind, MonsterConfig> = {
     damage: 1,
     color: 0x16a34a,
     radius: 14,
+    emoji: '👹',
   },
   bat: {
     kind: 'bat',
@@ -43,6 +46,7 @@ export const MONSTERS: Record<MonsterKind, MonsterConfig> = {
     damage: 1,
     color: 0xa855f7,
     radius: 10,
+    emoji: '🦇',
   },
   golem: {
     kind: 'golem',
@@ -54,6 +58,7 @@ export const MONSTERS: Record<MonsterKind, MonsterConfig> = {
     resistance: 0.4,
     color: 0x78716c,
     radius: 18,
+    emoji: '🪨',
   },
 };
 
@@ -122,4 +127,5 @@ export const BOSS = {
   resistance: 0.5,
   color: 0xdc2626,
   radius: 26,
+  emoji: '😈',
 };

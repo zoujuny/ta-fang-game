@@ -27,40 +27,70 @@ const p = (col: number, row: number) => ({
 
 const empty = (): number[][] => Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(0));
 
-// 将一条 path 写进 grid: 把 path 上的格子标记为 1
-function bakeGrid(base: number[][], paths: Array<Array<{ x: number; y: number }>>): number[][] {
-  const g = base.map(r => r.slice());
+// 把所有 path 段合并成"被 path 覆盖的格子集合"
+// 用精确的"格子中心到线段最短距离"判断, 与 pathGfx 的 lineStyle 宽度一致 (TILE_SIZE)
+function pathCoveredCells(paths: Array<Array<{ x: number; y: number }>>): Set<string> {
+  const covered = new Set<string>();
+  const radius = TILE_SIZE / 2;
+  const r2 = radius * radius;
+
+  // 合并所有段, 去重
+  type Seg = { ax: number; ay: number; bx: number; by: number };
+  const segs: Seg[] = [];
   for (const path of paths) {
     for (let i = 0; i < path.length - 1; i++) {
       const a = path[i];
       const b = path[i + 1];
-      const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x);
-      const y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
-      // 简单 Bresenham-ish: 水平或垂直段
-      if (Math.abs(a.y - b.y) < 0.5) {
-        const row = Math.round(a.y / TILE_SIZE);
-        for (let c = Math.floor(x0 / TILE_SIZE); c <= Math.ceil(x1 / TILE_SIZE); c++) {
-          if (row >= 0 && row < GRID_ROWS && c >= 0 && c < GRID_COLS) g[row][c] = 1;
+      segs.push({ ax: a.x, ay: a.y, bx: b.x, by: b.y });
+    }
+  }
+
+  // 遍历每个格子, 看中心点是否落在某条线段的"宽 r"范围内
+  for (let r = 0; r < GRID_ROWS; r++) {
+    for (let c = 0; c < GRID_COLS; c++) {
+      const cx = c * TILE_SIZE + TILE_SIZE / 2;
+      const cy = r * TILE_SIZE + TILE_SIZE / 2;
+      for (const s of segs) {
+        const dx = s.bx - s.ax;
+        const dy = s.by - s.ay;
+        const len2 = dx * dx + dy * dy;
+        let t = 0;
+        if (len2 > 0) {
+          t = ((cx - s.ax) * dx + (cy - s.ay) * dy) / len2;
+          if (t < 0) t = 0;
+          if (t > 1) t = 1;
         }
-      } else if (Math.abs(a.x - b.x) < 0.5) {
-        const col = Math.round(a.x / TILE_SIZE);
-        for (let r = Math.floor(y0 / TILE_SIZE); r <= Math.ceil(y1 / TILE_SIZE); r++) {
-          if (col >= 0 && col < GRID_COLS && r >= 0 && r < GRID_ROWS) g[r][col] = 1;
+        const px = s.ax + dx * t;
+        const py = s.ay + dy * t;
+        const ddx = cx - px;
+        const ddy = cy - py;
+        if (ddx * ddx + ddy * ddy <= r2) {
+          covered.add(`${c},${r}`);
+          break;
         }
       }
     }
   }
+  return covered;
+}
+
+function bakeGrid(_base: number[][], paths: Array<Array<{ x: number; y: number }>>): number[][] {
+  const g: number[][] = Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(0));
+  for (const key of pathCoveredCells(paths)) {
+    const [c, r] = key.split(',').map(Number);
+    if (r >= 0 && r < GRID_ROWS && c >= 0 && c < GRID_COLS) g[r][c] = 1;
+  }
   return g;
 }
 
-// L1 (existing)
+// L1 (网格对齐版本): 入口/折点/出口 全部用格子中心 (col*48+24, row*48+24)
 const l1Paths = [[
-  { x: 0, y: TILE_SIZE * 1 },
-  { x: TILE_SIZE * 5 + TILE_SIZE / 2, y: TILE_SIZE * 1 },
-  { x: TILE_SIZE * 5 + TILE_SIZE / 2, y: TILE_SIZE * 4 + TILE_SIZE / 2 },
-  { x: TILE_SIZE * 11 + TILE_SIZE / 2, y: TILE_SIZE * 4 + TILE_SIZE / 2 },
-  { x: TILE_SIZE * 11 + TILE_SIZE / 2, y: TILE_SIZE * 7 + TILE_SIZE / 2 },
-  { x: GAME_WIDTH, y: TILE_SIZE * 7 + TILE_SIZE / 2 },
+  p(0, 1),
+  p(5, 1),
+  p(5, 4),
+  p(11, 4),
+  p(11, 7),
+  p(GRID_COLS - 1, 7),
 ]];
 const l1Grid = bakeGrid(empty(), l1Paths);
 

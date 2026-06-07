@@ -32,6 +32,7 @@ export class Tower {
   private container: Phaser.GameObjects.Container;
   private base: Phaser.GameObjects.Rectangle;
   private head: Phaser.GameObjects.Arc;
+  private emojiText: Phaser.GameObjects.Text;
   private barrel: Phaser.GameObjects.Rectangle;
 
   constructor(scene: Phaser.Scene, kind: TowerKind, col: number, row: number, pixelX: number, pixelY: number) {
@@ -59,9 +60,9 @@ export class Tower {
     this.container = scene.add.container(this.x, this.y);
     this.base = scene.add.rectangle(0, 0, 36, 36, 0x374151).setStrokeStyle(2, 0x111827);
     this.head = scene.add.circle(0, 0, 14, this.color).setStrokeStyle(2, 0x111827);
-    // barrel: 从中心 (0,0) 向 +X 方向延伸 20 像素,origin (0, 0.5)
+    this.emojiText = scene.add.text(0, 0, cfg.emoji, { fontSize: '20px' }).setOrigin(0.5);
     this.barrel = scene.add.rectangle(0, 0, 20, 8, 0x111827).setOrigin(0, 0.5);
-    this.container.add([this.base, this.head, this.barrel]);
+    this.container.add([this.base, this.head, this.emojiText, this.barrel]);
   }
 
   acquireTarget(monsters: Monster[]): Monster | null {

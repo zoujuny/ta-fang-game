@@ -18,8 +18,8 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "npx tsc --noEmit 2>&1 | tail -5",
-    "testCommand": "npx vitest run 2>&1 | tail -5",
+    "buildCommand": "npx vitest run 2>&1 | tail -5; echo \"---\"; npx tsc --noEmit 2>&1 | tail -3",
+    "testCommand": "npx vitest run 2>&1 | tail -5; echo \"---\"; npx tsc --noEmit 2>&1 | tail -3",
     "lintCommand": null,
     "devCommand": "npm run dev",
     "scripts": {
@@ -81,8 +81,14 @@
   "hotPaths": [
     {
       "path": "src/scenes/GameScene.ts",
-      "accessCount": 21,
-      "lastAccessed": 1780755830672,
+      "accessCount": 22,
+      "lastAccessed": 1780820643263,
+      "type": "file"
+    },
+    {
+      "path": "src/entities/Tower.ts",
+      "accessCount": 17,
+      "lastAccessed": 1780813940786,
       "type": "file"
     },
     {
@@ -98,15 +104,15 @@
       "type": "file"
     },
     {
-      "path": "src/entities/Tower.ts",
-      "accessCount": 13,
-      "lastAccessed": 1780755729769,
+      "path": "src/entities/Monster.ts",
+      "accessCount": 12,
+      "lastAccessed": 1780813867130,
       "type": "file"
     },
     {
-      "path": "src/entities/Monster.ts",
-      "accessCount": 10,
-      "lastAccessed": 1780755825444,
+      "path": "src/config/grid.ts",
+      "accessCount": 12,
+      "lastAccessed": 1780821126189,
       "type": "file"
     },
     {
@@ -116,15 +122,15 @@
       "type": "file"
     },
     {
-      "path": "src/config/grid.ts",
-      "accessCount": 8,
-      "lastAccessed": 1780753104874,
-      "type": "file"
-    },
-    {
       "path": "index.html",
       "accessCount": 6,
       "lastAccessed": 1780751573446,
+      "type": "file"
+    },
+    {
+      "path": "src/config/monsters.ts",
+      "accessCount": 6,
+      "lastAccessed": 1780813821794,
       "type": "file"
     },
     {
@@ -137,12 +143,6 @@
       "path": "src/tests/elements.test.ts",
       "accessCount": 4,
       "lastAccessed": 1780747090372,
-      "type": "file"
-    },
-    {
-      "path": "src/config/monsters.ts",
-      "accessCount": 4,
-      "lastAccessed": 1780755842570,
       "type": "file"
     },
     {
@@ -165,8 +165,8 @@
     },
     {
       "path": "src/config/towers.ts",
-      "accessCount": 2,
-      "lastAccessed": 1780745742153,
+      "accessCount": 3,
+      "lastAccessed": 1780813845780,
       "type": "file"
     },
     {
@@ -323,6 +323,24 @@
       "path": ".claude/fx-1.png",
       "accessCount": 1,
       "lastAccessed": 1780756189509,
+      "type": "file"
+    },
+    {
+      "path": ".claude/emoji-1.png",
+      "accessCount": 1,
+      "lastAccessed": 1780813973079,
+      "type": "file"
+    },
+    {
+      "path": ".claude/emoji-towers.png",
+      "accessCount": 1,
+      "lastAccessed": 1780814013485,
+      "type": "file"
+    },
+    {
+      "path": ".claude/l1-aligned.png",
+      "accessCount": 1,
+      "lastAccessed": 1780821090810,
       "type": "file"
     }
   ],

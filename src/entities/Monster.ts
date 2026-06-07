@@ -32,6 +32,7 @@ export class Monster {
 
   private container: Phaser.GameObjects.Container;
   private body: Phaser.GameObjects.Arc;
+  private emojiText: Phaser.GameObjects.Text;
   private hpBar: Phaser.GameObjects.Rectangle;
   private hpBg: Phaser.GameObjects.Rectangle;
   private slowTint: Phaser.GameObjects.Arc;
@@ -69,7 +70,11 @@ export class Monster {
     this.shockTint = scene.add.circle(0, 0, this.radius + 2, 0xe9d5ff, 0);
     this.hpBg = scene.add.rectangle(0, -this.radius - 6, this.radius * 2, 3, 0x000000, 0.6).setOrigin(0.5);
     this.hpBar = scene.add.rectangle(0, -this.radius - 6, this.radius * 2, 3, 0x4ade80).setOrigin(0.5);
-    this.container.add([this.body, this.slowTint, this.burnTint, this.shockTint, this.hpBg, this.hpBar]);
+    const emojiSize = Math.max(12, this.radius * 1.7);
+    this.emojiText = scene.add.text(0, 0, cfg.emoji, {
+      fontSize: `${emojiSize}px`,
+    }).setOrigin(0.5);
+    this.container.add([this.body, this.slowTint, this.burnTint, this.shockTint, this.emojiText, this.hpBg, this.hpBar]);
     // 出生弹入动画
     this.container.setScale(0);
     popIn(this.container, 350);

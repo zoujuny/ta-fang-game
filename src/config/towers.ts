@@ -20,6 +20,7 @@ export interface TowerConfig {
   shockChainDamage: number; // 0 = no chain
   color: number;
   projectileColor: number;
+  emoji: string;
 }
 
 export const TOWERS: Record<TowerKind, TowerConfig> = {
@@ -41,6 +42,7 @@ export const TOWERS: Record<TowerKind, TowerConfig> = {
     shockChainDamage: 0,
     color: 0x4ade80,
     projectileColor: 0xfde047,
+    emoji: '🏹',
   },
   cannon: {
     kind: 'cannon',
@@ -60,6 +62,7 @@ export const TOWERS: Record<TowerKind, TowerConfig> = {
     shockChainDamage: 0,
     color: 0xef4444,
     projectileColor: 0xfb923c,
+    emoji: '💣',
   },
   frost: {
     kind: 'frost',
@@ -79,6 +82,7 @@ export const TOWERS: Record<TowerKind, TowerConfig> = {
     shockChainDamage: 0,
     color: 0x60a5fa,
     projectileColor: 0xbae6fd,
+    emoji: '❄️',
   },
   fire: {
     kind: 'fire',
@@ -98,6 +102,7 @@ export const TOWERS: Record<TowerKind, TowerConfig> = {
     shockChainDamage: 0,
     color: 0xfb923c,
     projectileColor: 0xfca5a5,
+    emoji: '🔥',
   },
   shock: {
     kind: 'shock',
@@ -117,5 +122,6 @@ export const TOWERS: Record<TowerKind, TowerConfig> = {
     shockChainDamage: 12,
     color: 0xa855f7,
     projectileColor: 0xe9d5ff,
+    emoji: '⚡',
   },
 };
