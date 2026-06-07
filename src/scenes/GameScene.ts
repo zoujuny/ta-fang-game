@@ -57,6 +57,8 @@ export class GameScene extends Phaser.Scene {
   private sceneData!: SceneData;
   private lastEmitted = '';
   private victoryOverlay: Phaser.GameObjects.Container | null = null;
+  private pauseOverlay: Phaser.GameObjects.Container | null = null;
+  private isPaused = false;
 
   private emptyStats(): GameStats {
     return {
@@ -108,6 +110,9 @@ export class GameScene extends Phaser.Scene {
     });
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       this.handleClick(p);
+    });
+    this.input.keyboard?.on('keydown-ESC', () => {
+      this.togglePause();
     });
   }
 
@@ -331,6 +336,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
+    if (this.isPaused) return;
     if (this.state.gameOver) return;
     const now = this.time.now;
     const dt = Math.min(delta, 50);
@@ -607,6 +613,73 @@ export class GameScene extends Phaser.Scene {
     if (idx0 < 0 || idx0 >= LEVEL_ORDER.length - 1) return;
     this.switchLevel(LEVEL_ORDER[idx0 + 1]);
   }
+
+  public togglePause() {
+    if (this.state.gameOver) return;
+    if (this.isPaused) this.hidePauseOverlay();
+    else this.showPauseOverlay();
+  }
+
+  private showPauseOverlay() {
+    if (this.pauseOverlay) return;
+    this.isPaused = true;
+    const c = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2).setDepth(600);
+    const dim = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7);
+    c.add(dim);
+    const title = this.add.text(0, -130, '⏸ 暂停', { fontSize: '36px', color: '#fde047', fontStyle: 'bold' }).setOrigin(0.5);
+    c.add(title);
+    const hint = this.add.text(0, -85, '按 ESC 继续', { fontSize: '14px', color: '#94a3b8' }).setOrigin(0.5);
+    c.add(hint);
+
+    // 继续
+    const btnResume = this.add.container(0, -10);
+    const r1 = this.add.rectangle(0, 0, 200, 50, 0x22c55e).setStrokeStyle(3, 0x15803d);
+    const t1 = this.add.text(0, 0, '继续', { fontSize: '20px', color: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
+    btnResume.add([r1, t1]);
+    btnResume.setSize(200, 50);
+    btnResume.setInteractive(new Phaser.Geom.Rectangle(-100, -25, 200, 50), Phaser.Geom.Rectangle.Contains);
+    btnResume.on('pointerdown', () => this.hidePauseOverlay());
+    c.add(btnResume);
+
+    // 重玩本关
+    const btnReplay = this.add.container(0, 50);
+    const r2 = this.add.rectangle(0, 0, 200, 44, 0x6b7280).setStrokeStyle(2, 0x374151);
+    const t2 = this.add.text(0, 0, '重玩本关', { fontSize: '17px', color: '#fff' }).setOrigin(0.5);
+    btnReplay.add([r2, t2]);
+    btnReplay.setSize(200, 44);
+    btnReplay.setInteractive(new Phaser.Geom.Rectangle(-100, -22, 200, 44), Phaser.Geom.Rectangle.Contains);
+    btnReplay.on('pointerdown', () => {
+      this.hidePauseOverlay();
+      this.resetCurrentLevel();
+    });
+    c.add(btnReplay);
+
+    // 选关
+    const btnBack = this.add.container(0, 105);
+    const r3 = this.add.rectangle(0, 0, 200, 44, 0x1f2937).setStrokeStyle(2, 0x374151);
+    const t3 = this.add.text(0, 0, '选关 (退出暂停)', { fontSize: '17px', color: '#fff' }).setOrigin(0.5);
+    btnBack.add([r3, t3]);
+    btnBack.setSize(200, 44);
+    btnBack.setInteractive(new Phaser.Geom.Rectangle(-100, -22, 200, 44), Phaser.Geom.Rectangle.Contains);
+    btnBack.on('pointerdown', () => {
+      this.hidePauseOverlay();
+    });
+    c.add(btnBack);
+
+    this.pauseOverlay = c;
+  }
+
+  private hidePauseOverlay() {
+    if (!this.pauseOverlay) {
+      this.isPaused = false;
+      return;
+    }
+    this.pauseOverlay.destroy();
+    this.pauseOverlay = null;
+    this.isPaused = false;
+  }
+
+  // 暂停菜单
 
   private emitState() {
     const key = `${this.state.gold}|${this.state.lives}|${this.state.waveIndex}|${this.state.waveInProgress}|${this.state.selectedKind}|${this.state.gameOver}|${this.state.victory}|${this.state.levelId}`;

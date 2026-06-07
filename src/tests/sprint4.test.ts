@@ -44,6 +44,7 @@ describe('level index progression', () => {
   it('goToNextLevel advances by 1 (L1 -> L2 -> ... -> L10)', () => {
     const order = ['level1','level2','level3','level4','level5','level6','level7','level8','level9','level10'];
     let i = 0;
+    i++;
     const isLast = (idx: number) => idx >= order.length - 1;
     const next = (idx: number) => idx + 1;
     expect(isLast(9)).toBe(true);
