@@ -1,16 +1,26 @@
 import Phaser from 'phaser';
-import { GRID_COLS, GRID_ROWS, TILE_SIZE, GAME_HEIGHT, isBuildable, STARTING_GOLD, STARTING_LIVES, LEVELS, LEVEL_ORDER, levelScale, type LevelId, type LevelDef } from '../config/grid';
+import { GRID_COLS, GRID_ROWS, TILE_SIZE, GAME_HEIGHT, GAME_WIDTH, isBuildable, STARTING_GOLD, STARTING_LIVES, LEVELS, LEVEL_ORDER, levelScale, type LevelId, type LevelDef } from '../config/grid';
 import { TOWERS, type TowerKind } from '../config/towers';
 import { Monster } from '../entities/Monster';
 import { Tower } from '../entities/Tower';
 import { Projectile, type ReactionEvent } from '../entities/Projectile';
 import { createWaveRuntime, tickWaveSpawns, isWaveComplete, type WaveRuntime } from '../systems/wave';
 import { WAVES } from '../config/monsters';
-import { cameraShake, cameraFlash } from '../systems/fx';
+import { cameraShake, cameraFlash, spawnBurst } from '../systems/fx';
 import { loadProgress, saveProgress, markCleared } from '../systems/progress';
 
 interface SceneData {
   onState: (s: GameState) => void;
+}
+
+export interface GameStats {
+  kills: number;
+  livesStart: number;
+  livesLeft: number;
+  goldEarned: number;
+  towersBuilt: number;
+  waveReached: number;
+  totalWaves: number;
 }
 
 export interface GameState {
@@ -24,6 +34,7 @@ export interface GameState {
   victory: boolean;
   levelId: LevelId;
   totalLevels: number;
+  stats: GameStats;
 }
 
 export class GameScene extends Phaser.Scene {
@@ -45,6 +56,19 @@ export class GameScene extends Phaser.Scene {
   private manageSellBtn: Phaser.GameObjects.Container | null = null;
   private sceneData!: SceneData;
   private lastEmitted = '';
+  private victoryOverlay: Phaser.GameObjects.Container | null = null;
+
+  private emptyStats(): GameStats {
+    return {
+      kills: 0,
+      livesStart: STARTING_LIVES,
+      livesLeft: STARTING_LIVES,
+      goldEarned: 0,
+      towersBuilt: 0,
+      waveReached: 0,
+      totalWaves: WAVES.length,
+    };
+  }
 
   constructor() {
     super('GameScene');
@@ -59,6 +83,7 @@ export class GameScene extends Phaser.Scene {
       victory: false,
       levelId: 'level1',
       totalLevels: LEVEL_ORDER.length,
+      stats: this.emptyStats(),
     };
   }
 
@@ -164,6 +189,7 @@ export class GameScene extends Phaser.Scene {
     this.state.gold -= cost;
     const tower = new Tower(this, kind, col, row, col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
     this.towers.push(tower);
+    this.state.stats.towersBuilt = this.towers.length;
     this.emitState();
   }
 
@@ -247,6 +273,7 @@ export class GameScene extends Phaser.Scene {
     this.state.gold += t.sellValue();
     this.towers = this.towers.filter(x => x !== t);
     t.destroy();
+    this.state.stats.towersBuilt = this.towers.length;
     this.exitManageMode();
     this.emitState();
   }
@@ -294,6 +321,7 @@ export class GameScene extends Phaser.Scene {
       victory: false,
       levelId,
       totalLevels: LEVEL_ORDER.length,
+      stats: this.emptyStats(),
     };
     this.level = LEVELS[levelId];
     // 清理画布
@@ -381,23 +409,33 @@ export class GameScene extends Phaser.Scene {
     // 击杀/到达处理
     let goldEarned = 0;
     let livesLost = 0;
+    let kills = 0;
     this.monsters = this.monsters.filter(m => {
       if (m.alive) return true;
       if (m.reachedEnd) {
         livesLost += m.damage;
       } else {
         goldEarned += m.bounty;
+        kills++;
       }
       m.destroy();
       return false;
     });
-    if (goldEarned) this.state.gold += Math.round(goldEarned);
+    if (goldEarned) {
+      const r = Math.round(goldEarned);
+      this.state.gold += r;
+      this.state.stats.goldEarned += r;
+    }
     if (livesLost) this.state.lives -= Math.round(livesLost);
+    this.state.stats.livesLeft = this.state.lives;
+    this.state.stats.kills += kills;
 
     if (this.wave && this.state.waveInProgress && isWaveComplete(this.wave, this.monsters.length)) {
       this.state.gold += this.wave.def.reward;
+      this.state.stats.goldEarned += this.wave.def.reward;
       this.state.waveInProgress = false;
       this.state.waveIndex++;
+      this.state.stats.waveReached = this.state.waveIndex;
       this.wave = null;
       if (this.state.waveIndex >= WAVES.length) {
         this.state.victory = true;
@@ -411,6 +449,7 @@ export class GameScene extends Phaser.Scene {
             saveProgress(next);
           }
         }
+        this.showVictoryOverlay();
       }
     }
 
@@ -477,6 +516,96 @@ export class GameScene extends Phaser.Scene {
       const circle = this.add.circle(evt.x, evt.y, 40, 0xa3e635, 0.5).setStrokeStyle(3, 0x65a30d);
       this.explosionFx.push({ circle, until: now + 350 });
     }
+  }
+
+  private showVictoryOverlay() {
+    if (this.victoryOverlay) return;
+    const c = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2).setDepth(500);
+    const dim = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.75);
+    c.add(dim);
+
+    const title = this.add.text(0, -180, '🏆 通关胜利!', { fontSize: '40px', color: '#fde047', fontStyle: 'bold' }).setOrigin(0.5);
+    c.add(title);
+    const sub = this.add.text(0, -130, LEVELS[this.state.levelId]?.name ?? '', { fontSize: '18px', color: '#fff' }).setOrigin(0.5);
+    c.add(sub);
+
+    const s = this.state.stats;
+    const lines = [
+      { label: '击杀怪物', value: `${s.kills}`, color: 0xfca5a5 },
+      { label: '生命剩余', value: `${s.livesLeft} / ${s.livesStart}`, color: 0x86efac },
+      { label: '金币总获得', value: `${s.goldEarned}`, color: 0xfde047 },
+      { label: '塔总数', value: `${s.towersBuilt}`, color: 0x93c5fd },
+      { label: '完成波次', value: `${s.waveReached} / ${s.totalWaves}`, color: 0xd8b4fe },
+    ];
+    let y = -70;
+    for (const l of lines) {
+      const t = this.add.text(0, y, `${l.label}: ${l.value}`, {
+        fontSize: '18px', color: '#' + l.color.toString(16).padStart(6, '0'),
+      }).setOrigin(0.5);
+      c.add(t);
+      y += 28;
+    }
+
+    const idx0 = LEVEL_ORDER.indexOf(this.state.levelId);
+    const isLastLevel = idx0 >= LEVEL_ORDER.length - 1;
+    if (!isLastLevel) {
+      const btn = this.add.container(0, 130);
+      const rect = this.add.rectangle(0, 0, 200, 50, 0x22c55e).setStrokeStyle(3, 0x15803d);
+      const label = this.add.text(0, -8, '下一关 →', { fontSize: '20px', color: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
+      const sub2 = this.add.text(0, 14, '点击进入', { fontSize: '12px', color: '#bbf7d0' }).setOrigin(0.5);
+      btn.add([rect, label, sub2]);
+      btn.setSize(200, 50);
+      btn.setInteractive(new Phaser.Geom.Rectangle(-100, -25, 200, 50), Phaser.Geom.Rectangle.Contains);
+      btn.on('pointerdown', () => this.goToNextLevel());
+      c.add(btn);
+    } else {
+      const final = this.add.text(0, 130, '🎉 全部 10 关通关!', { fontSize: '24px', color: '#fde047', fontStyle: 'bold' }).setOrigin(0.5);
+      c.add(final);
+    }
+
+    const replay = this.add.container(-110, 195);
+    const rect2 = this.add.rectangle(0, 0, 90, 32, 0x6b7280).setStrokeStyle(2, 0x374151);
+    const lab2 = this.add.text(0, 0, '重玩本关', { fontSize: '13px', color: '#fff' }).setOrigin(0.5);
+    replay.add([rect2, lab2]);
+    replay.setSize(90, 32);
+    replay.setInteractive(new Phaser.Geom.Rectangle(-45, -16, 90, 32), Phaser.Geom.Rectangle.Contains);
+    replay.on('pointerdown', () => this.resetCurrentLevel());
+    c.add(replay);
+
+    const back = this.add.container(110, 195);
+    const rect3 = this.add.rectangle(0, 0, 90, 32, 0x1f2937).setStrokeStyle(2, 0x374151);
+    const lab3 = this.add.text(0, 0, '选关', { fontSize: '13px', color: '#fff' }).setOrigin(0.5);
+    back.add([rect3, lab3]);
+    back.setSize(90, 32);
+    back.setInteractive(new Phaser.Geom.Rectangle(-45, -16, 90, 32), Phaser.Geom.Rectangle.Contains);
+    back.on('pointerdown', () => {
+      this.victoryOverlay = null;
+      c.destroy();
+    });
+    c.add(back);
+
+    this.victoryOverlay = c;
+
+    // 彩带粒子
+    for (let i = 0; i < 6; i++) {
+      this.time.delayedCall(i * 200, () => {
+        spawnBurst(this, {
+          x: Math.random() * GAME_WIDTH,
+          y: -20,
+          count: 18,
+          color: [0xfb923c, 0xfde047, 0x67e8f9, 0xa3e635, 0xfca5a5][i % 5],
+          speed: 220,
+          life: 1400,
+          size: 4,
+        });
+      });
+    }
+  }
+
+  public goToNextLevel() {
+    const idx0 = LEVEL_ORDER.indexOf(this.state.levelId);
+    if (idx0 < 0 || idx0 >= LEVEL_ORDER.length - 1) return;
+    this.switchLevel(LEVEL_ORDER[idx0 + 1]);
   }
 
   private emitState() {
