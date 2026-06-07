@@ -1,0 +1,11 @@
+node_modules
+dist
+.vite
+*.log
+.DS_Store
+coverage
+.omc/project-memory.json
+.omc/sessions/eb154c04-75ab-4122-9187-4277b0a8a27a.json
+.omc/state/agent-replay-eb154c04-75ab-4122-9187-4277b0a8a27a.jsonl
+.omc/state/last-tool-error.json
+.omc/state/sessions/eb154c04-75ab-4122-9187-4277b0a8a27a/session-started.json

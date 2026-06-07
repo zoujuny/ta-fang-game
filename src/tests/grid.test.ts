@@ -48,7 +48,7 @@ describe('LEVELS configuration', () => {
       );
     // L1 = 5 segments, L10 should be far more
     expect(totalSegs('level1')).toBeLessThan(totalSegs('level10'));
-    expect(totalSegs('level10')).toBeGreaterThanOrEqual(15);
+    expect(totalSegs('level10')).toBeGreaterThanOrEqual(8);
   });
 });
 

@@ -41,10 +41,11 @@ describe('isBuildable matches actual path cells', () => {
     }
   });
 
-  it('L10 maze: shared mid cells (col 8 row 5) are NOT buildable', () => {
+  it('L10 maze: key path cells are NOT buildable', () => {
     const lvl = LEVELS.level10;
-    // L10 path A goes through (8, 9) -> (8, 6) so (8,6)(8,7)(8,8)(8,9) should be path
-    expect(isBuildable(lvl, 8, 7)).toBe(false);
-    expect(isBuildable(lvl, 8, 8)).toBe(false);
+    // L10 简化迷宫: 上路径拐点 (8,4), 下路径拐点 (4,5)(12,5)
+    expect(isBuildable(lvl, 8, 4)).toBe(false);
+    expect(isBuildable(lvl, 4, 5)).toBe(false);
+    expect(isBuildable(lvl, 12, 5)).toBe(false);
   });
 });

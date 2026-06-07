@@ -272,8 +272,8 @@ export class GameScene extends Phaser.Scene {
       m.destroy();
       return false;
     });
-    if (goldEarned) this.state.gold += goldEarned;
-    if (livesLost) this.state.lives -= livesLost;
+    if (goldEarned) this.state.gold += Math.round(goldEarned);
+    if (livesLost) this.state.lives -= Math.round(livesLost);
 
     if (this.wave && this.state.waveInProgress && isWaveComplete(this.wave, this.monsters.length)) {
       this.state.gold += this.wave.def.reward;
@@ -289,6 +289,8 @@ export class GameScene extends Phaser.Scene {
     if (this.state.lives <= 0) {
       this.state.lives = 0;
       this.state.gameOver = true;
+    } else if (!Number.isInteger(this.state.lives)) {
+      this.state.lives = Math.round(this.state.lives);
     }
 
     this.emitState();
