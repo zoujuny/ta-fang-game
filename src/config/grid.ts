@@ -180,15 +180,15 @@ export const LEVEL_ORDER: LevelId[] = [
   'level6', 'level7', 'level8', 'level9', 'level10',
 ];
 
-// 难度因子: 1-based 关卡 → 怪物 scaling
+// 难度因子: 1-based 关卡 → 怪物 scaling (指数曲线)
+// idx0 = 关卡在 LEVEL_ORDER 的索引 (0..9)
 export function levelScale(idx0: number) {
-  // idx0 = 关卡在 LEVEL_ORDER 的索引 (0..9)
-  const t = (idx0 + 1) / 10; // 0.1 .. 1.0
+  const k = idx0; // 0..9
   return {
-    hpMul: 1 + t * 1.2,           // L1=1.12, L10=2.20
-    speedMul: 1 + t * 0.5,        // L1=1.05, L10=1.50
-    damageMul: 1 + t * 0.8,       // L1=1.08, L10=1.80
-    bountyMul: 1 + t * 0.6,       // L1=1.06, L10=1.60
+    hpMul: Math.pow(1.18, k),        // L1=1.00, L10=4.22
+    speedMul: Math.pow(1.08, k),     // L1=1.00, L10=1.99
+    damageMul: Math.pow(1.12, k),    // L1=1.00, L10=3.11
+    bountyMul: Math.pow(1.10, k),    // L1=1.00, L10=2.36
   };
 }
 

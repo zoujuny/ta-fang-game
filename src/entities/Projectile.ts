@@ -18,7 +18,7 @@ export interface ProjectileOptions {
 export interface ReactionEvent {
   x: number;
   y: number;
-  name: 'melt' | 'overload' | 'supercharge';
+  name: 'melt' | 'overload' | 'supercharge' | 'shatter';
   damage: number;
   splashRadius?: number;
   stunMs?: number;
@@ -108,6 +108,10 @@ export class Projectile {
       if (this.options.element === 'shock' && this.options.shockDuration > 0) {
         this.target.applyStatus('shock', { kind: 'shock', until: now + this.options.shockDuration });
       }
+      if (this.options.element === 'poison' && this.options.burnDps > 0) {
+        const eff: StatusEffect = { kind: 'poison', until: now + this.options.burnDuration, dps: this.options.burnDps };
+        this.target.applyStatus('poison', eff);
+      }
       // 反应检测: 新元素 + 预快照中的已有状态
       const r = pickReactionByElement(this.options.element, preStatuses);
       if (r) {
@@ -123,8 +127,8 @@ export class Projectile {
         const beforeReactionHp = this.target.hp;
         this.target.takeDamage(r.damage);
         const reactionDealt = Math.max(0, beforeReactionHp - this.target.hp);
-        const reactionLabels: Record<string, string> = { melt: '融化!', overload: '超载!', supercharge: '超导!' };
-        const reactionColors: Record<string, number> = { melt: 0xfb923c, overload: 0xfde047, supercharge: 0x67e8f9 };
+        const reactionLabels: Record<string, string> = { melt: '融化!', overload: '超载!', supercharge: '超导!', shatter: '碎冰!' };
+        const reactionColors: Record<string, number> = { melt: 0xfb923c, overload: 0xfde047, supercharge: 0x67e8f9, shatter: 0xa3e635 };
         spawnFloater(this.scene, {
           x: this.target.x,
           y: this.target.y - this.target.radius - 28,

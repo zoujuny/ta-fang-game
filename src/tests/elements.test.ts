@@ -3,9 +3,9 @@ import { findReaction, pickReaction, pickReactionByElement, tickStatus, REACTION
 import { TOWERS } from '../config/towers';
 
 describe('REACTIONS table', () => {
-  it('contains 3 reactions: melt, overload, supercharge', () => {
+  it('contains 4 reactions: melt, overload, supercharge, shatter', () => {
     const names = REACTIONS.map(r => r.name).sort();
-    expect(names).toEqual(['melt', 'overload', 'supercharge']);
+    expect(names).toEqual(['melt', 'overload', 'shatter', 'supercharge']);
   });
   it('melt is chill+burn', () => {
     const r = REACTIONS.find(x => x.name === 'melt')!;

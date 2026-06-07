@@ -28,6 +28,9 @@
       .tower-btn[data-kind="frost"] { border-color: #60a5fa; background: rgba(96, 165, 250, 0.25); }
       .tower-btn[data-kind="fire"] { border-color: #fb923c; background: rgba(251, 146, 60, 0.25); }
       .tower-btn[data-kind="shock"] { border-color: #a855f7; background: rgba(168, 85, 247, 0.25); }
+      .tower-btn[data-kind="poison"] { border-color: #84cc16; background: rgba(132, 204, 22, 0.25); }
+      .tower-btn[data-kind="holy"] { border-color: #fde68a; background: rgba(253, 230, 138, 0.25); }
+      .tower-btn[data-kind="dark"] { border-color: #4c1d95; background: rgba(76, 29, 149, 0.25); }
       .tower-btn.selected { border-width: 3px; border-color: #fff; }
       .tower-btn.disabled { opacity: 0.4; cursor: not-allowed; }
       .tower-btn .cost { font-size: 11px; color: #fde047; }
@@ -37,6 +40,12 @@
         font-size: 14px; font-weight: bold; white-space: nowrap;
       }
       #start-btn:disabled { background: #6b7280; border-color: #374151; cursor: default; }
+      #reset-btn {
+        width: 60px; height: 40px; border: 2px solid #b91c1c;
+        background: #dc2626; color: #fff; border-radius: 4px; cursor: pointer;
+        font-size: 14px; font-weight: bold;
+      }
+      #reset-btn:hover { background: #ef4444; }
       .level-select { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
       .lvl-btn {
         width: 28px; height: 24px; font-size: 11px; padding: 0;
@@ -44,7 +53,8 @@
         border-radius: 3px; cursor: pointer;
       }
       .lvl-btn.active { background: #2563eb; border-color: #93c5fd; font-weight: bold; }
-      .lvl-btn:hover { background: #374151; }
+      .lvl-btn.locked { background: #1a1a1a; color: #4b5563; border-color: #2d2d2d; cursor: not-allowed; opacity: 0.4; }
+      .lvl-btn:hover:not(.locked) { background: #374151; }
       #legend {
         position: fixed; left: 12px; bottom: 12px; background: rgba(17,24,39,0.85);
         color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 12px;
@@ -96,13 +106,24 @@
       <div class="tower-btn" data-kind="shock" id="btn-shock">
         <div>雷塔</div><div class="cost">150金</div>
       </div>
+      <div class="tower-btn" data-kind="poison" id="btn-poison">
+        <div>毒塔</div><div class="cost">110金</div>
+      </div>
+      <div class="tower-btn" data-kind="holy" id="btn-holy">
+        <div>神圣塔</div><div class="cost">130金</div>
+      </div>
+      <div class="tower-btn" data-kind="dark" id="btn-dark">
+        <div>暗塔</div><div class="cost">140金</div>
+      </div>
       <button id="start-btn">开始下一波</button>
+      <button id="reset-btn">重玩</button>
     </div>
     <div id="game"></div>
     <div id="legend">
       <div><span class="key">冰+火 = 融化</span> (范围溅射)</div>
       <div><span class="key">火+雷 = 超载</span> (小爆 + 链)</div>
-      <div><span class="key">雷+火 = 超导</span> (眩晕)</div>
+      <div><span class="key">雷+冰 = 超导</span> (眩晕)</div>
+      <div><span class="key">冰+毒 = 碎冰</span> (清空状态)</div>
     </div>
     <div id="overlay"><h1></h1><p>刷新页面重玩</p></div>
     <script type="module" src="/src/main.ts"></script>

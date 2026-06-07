@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GameScene, type GameState } from './scenes/GameScene';
 import { GAME_WIDTH, GAME_HEIGHT, LEVELS, LEVEL_ORDER as LEVELS_ORDER, type LevelId } from './config/grid';
+import { loadProgress, isLevelUnlocked } from './systems/progress';
 import { TOWERS, type TowerKind } from './config/towers';
 
 class BootScene extends Phaser.Scene {
@@ -25,7 +26,7 @@ class BootScene extends Phaser.Scene {
   private bindDom() {
     if (this.bound) return;
     this.bound = true;
-    for (const k of ['arrow', 'cannon', 'frost', 'fire', 'shock'] as TowerKind[]) {
+    for (const k of ['arrow', 'cannon', 'frost', 'fire', 'shock', 'poison', 'holy', 'dark'] as TowerKind[]) {
       document.getElementById(`btn-${k}`)?.addEventListener('click', () => {
         this.ensureGameScene()?.selectTower(k);
       });
@@ -33,10 +34,17 @@ class BootScene extends Phaser.Scene {
     document.getElementById('start-btn')?.addEventListener('click', () => {
       this.ensureGameScene()?.startNextWave();
     });
+    document.getElementById('reset-btn')?.addEventListener('click', () => {
+      this.ensureGameScene()?.resetCurrentLevel();
+    });
     document.querySelectorAll('.lvl-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const lvl = (btn as HTMLElement).dataset.level as LevelId | undefined;
-        if (lvl) this.ensureGameScene()?.switchLevel(lvl);
+        if (!lvl) return;
+        const idx0 = LEVELS_ORDER.indexOf(lvl);
+        const progress = loadProgress();
+        if (!isLevelUnlocked(idx0, progress)) return;
+        this.ensureGameScene()?.switchLevel(lvl);
       });
     });
     document.getElementById('hud')?.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -58,11 +66,21 @@ class BootScene extends Phaser.Scene {
         const def = LEVELS[s.levelId];
         levelName.textContent = def ? `L${LEVELS_ORDER.indexOf(s.levelId) + 1} · ${def.name}` : s.levelId;
       }
-      for (const lvl of (window as unknown as { __levelIds: LevelId[] }).__levelIds) {
+      const progress = loadProgress();
+      for (let i = 0; i < (window as unknown as { __levelIds: LevelId[] }).__levelIds.length; i++) {
+        const lvl = (window as unknown as { __levelIds: LevelId[] }).__levelIds[i];
         const btn = document.querySelector(`.lvl-btn[data-level="${lvl}"]`);
-        btn?.classList.toggle('active', s.levelId === lvl);
+        if (!btn) continue;
+        btn.classList.toggle('active', s.levelId === lvl);
+        const unlocked = isLevelUnlocked(i, progress);
+        btn.classList.toggle('locked', !unlocked);
+        if (!unlocked) {
+          btn.setAttribute('title', `需通关 L${i} 解锁`);
+        } else {
+          btn.removeAttribute('title');
+        }
       }
-      for (const k of ['arrow', 'cannon', 'frost', 'fire', 'shock'] as TowerKind[]) {
+      for (const k of ['arrow', 'cannon', 'frost', 'fire', 'shock', 'poison', 'holy', 'dark'] as TowerKind[]) {
         const btn = document.getElementById(`btn-${k}`);
         if (!btn) continue;
         const cfg = TOWERS[k];

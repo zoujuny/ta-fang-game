@@ -7,6 +7,7 @@ import { Projectile, type ReactionEvent } from '../entities/Projectile';
 import { createWaveRuntime, tickWaveSpawns, isWaveComplete, type WaveRuntime } from '../systems/wave';
 import { WAVES } from '../config/monsters';
 import { cameraShake, cameraFlash } from '../systems/fx';
+import { loadProgress, saveProgress, markCleared } from '../systems/progress';
 
 interface SceneData {
   onState: (s: GameState) => void;
@@ -37,7 +38,11 @@ export class GameScene extends Phaser.Scene {
   private gridGfx!: Phaser.GameObjects.Graphics;
   private pathGfx!: Phaser.GameObjects.Graphics;
   private rangeGfx!: Phaser.GameObjects.Graphics;
+  private manageGfx!: Phaser.GameObjects.Graphics;
   private hoverCell = { col: -1, row: -1 };
+  private managedTower: Tower | null = null;
+  private manageUpgradeBtn: Phaser.GameObjects.Container | null = null;
+  private manageSellBtn: Phaser.GameObjects.Container | null = null;
   private sceneData!: SceneData;
   private lastEmitted = '';
 
@@ -67,6 +72,7 @@ export class GameScene extends Phaser.Scene {
     this.drawPaths();
     this.gridGfx = this.add.graphics().setDepth(1);
     this.rangeGfx = this.add.graphics().setDepth(2);
+    this.manageGfx = this.add.graphics().setDepth(3);
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
       const col = Math.floor(p.x / TILE_SIZE);
@@ -144,7 +150,13 @@ export class GameScene extends Phaser.Scene {
     const col = Math.floor(p.x / TILE_SIZE);
     const row = Math.floor(p.y / TILE_SIZE);
     if (!isBuildable(this.level, col, row)) return;
-    if (this.towers.some(t => t.col === col && t.row === row)) return;
+    const existing = this.towers.find(t => t.col === col && t.row === row);
+    if (existing) {
+      this.enterManageMode(existing);
+      return;
+    }
+    // 退出管理模式 (如在空地点击)
+    this.exitManageMode();
     const kind = this.state.selectedKind;
     if (!kind) return;
     const cost = TOWERS[kind].cost;
@@ -152,6 +164,90 @@ export class GameScene extends Phaser.Scene {
     this.state.gold -= cost;
     const tower = new Tower(this, kind, col, row, col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
     this.towers.push(tower);
+    this.emitState();
+  }
+
+  private enterManageMode(t: Tower) {
+    this.managedTower = t;
+    this.state.selectedKind = null; // 退出选塔模式
+    this.redrawManage();
+  }
+
+  private exitManageMode() {
+    if (this.managedTower) {
+      this.managedTower = null;
+      this.manageGfx.clear();
+      this.manageUpgradeBtn?.destroy();
+      this.manageSellBtn?.destroy();
+      this.manageUpgradeBtn = null;
+      this.manageSellBtn = null;
+    }
+  }
+
+  private redrawManage() {
+    this.manageGfx.clear();
+    this.manageUpgradeBtn?.destroy();
+    this.manageSellBtn?.destroy();
+    this.manageUpgradeBtn = null;
+    this.manageSellBtn = null;
+    if (!this.managedTower) return;
+    const t = this.managedTower;
+    // 选中光圈 (黄色实心方框)
+    this.manageGfx.lineStyle(3, 0xfde047, 1);
+    this.manageGfx.strokeRect(t.col * TILE_SIZE + 1, t.row * TILE_SIZE + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+    // 升级按钮 (在塔上方)
+    if (t.canUpgrade()) {
+      const upCost = t.nextUpgradeCost();
+      const canAfford = this.state.gold >= upCost;
+      const upY = t.row * TILE_SIZE - 28;
+      const upX = t.x;
+      const c = this.add.container(upX, upY).setDepth(30);
+      const w = 76, h = 22;
+      const rect = this.add.rectangle(0, 0, w, h, canAfford ? 0x22c55e : 0x6b7280).setStrokeStyle(1, 0x111827);
+      const txt = this.add.text(0, 0, `升级 L${t.level}→L${t.level + 1} (${upCost})`, { fontSize: '10px', color: '#fff' }).setOrigin(0.5);
+      c.add([rect, txt]);
+      c.setSize(w, h);
+      c.setInteractive(new Phaser.Geom.Rectangle(-w/2, -h/2, w, h), Phaser.Geom.Rectangle.Contains);
+      c.on('pointerdown', () => {
+        this.upgradeManagedTower();
+      });
+      this.manageUpgradeBtn = c;
+    }
+    // 卖出按钮 (塔下方)
+    const refund = t.sellValue();
+    const dnY = t.row * TILE_SIZE + TILE_SIZE + 14;
+    const dnX = t.x;
+    const c2 = this.add.container(dnX, dnY).setDepth(30);
+    const w2 = 60, h2 = 22;
+    const rect2 = this.add.rectangle(0, 0, w2, h2, 0x6b7280).setStrokeStyle(1, 0x111827);
+    const txt2 = this.add.text(0, 0, `卖出 +${refund}`, { fontSize: '10px', color: '#fde047' }).setOrigin(0.5);
+    c2.add([rect2, txt2]);
+    c2.setSize(w2, h2);
+    c2.setInteractive(new Phaser.Geom.Rectangle(-w2/2, -h2/2, w2, h2), Phaser.Geom.Rectangle.Contains);
+    c2.on('pointerdown', () => {
+      this.sellManagedTower();
+    });
+    this.manageSellBtn = c2;
+  }
+
+  private upgradeManagedTower() {
+    if (!this.managedTower) return;
+    const t = this.managedTower;
+    const cost = t.nextUpgradeCost();
+    if (this.state.gold < cost) return;
+    this.state.gold -= cost;
+    t.upgrade();
+    this.redrawManage();
+    this.emitState();
+  }
+
+  private sellManagedTower() {
+    if (!this.managedTower) return;
+    const t = this.managedTower;
+    this.state.gold += t.sellValue();
+    this.towers = this.towers.filter(x => x !== t);
+    t.destroy();
+    this.exitManageMode();
     this.emitState();
   }
 
@@ -167,6 +263,10 @@ export class GameScene extends Phaser.Scene {
     this.wave = createWaveRuntime(this.state.waveIndex, this.time.now);
     this.state.waveInProgress = true;
     this.emitState();
+  }
+
+  public resetCurrentLevel() {
+    this.switchLevel(this.state.levelId);
   }
 
   public switchLevel(levelId: LevelId) {
@@ -283,6 +383,15 @@ export class GameScene extends Phaser.Scene {
       if (this.state.waveIndex >= WAVES.length) {
         this.state.victory = true;
         this.state.gameOver = true;
+        // 写存档: 解锁下一关
+        const idx0 = LEVEL_ORDER.indexOf(this.state.levelId);
+        if (idx0 >= 0) {
+          const cur = loadProgress();
+          const next = markCleared(idx0, cur);
+          if (next.clearedThrough !== cur.clearedThrough) {
+            saveProgress(next);
+          }
+        }
       }
     }
 
@@ -299,7 +408,7 @@ export class GameScene extends Phaser.Scene {
   private onReaction(evt: ReactionEvent, target: Monster, now: number) {
     // 反应触发 → 屏幕震 + 色变
     cameraShake(this, 0.004, 150);
-    const flashColors: Record<string, number> = { melt: 0xfb923c, overload: 0xfde047, supercharge: 0x67e8f9 };
+    const flashColors: Record<string, number> = { melt: 0xfb923c, overload: 0xfde047, supercharge: 0x67e8f9, shatter: 0xa3e635 };
     cameraFlash(this, flashColors[evt.name] ?? 0xffffff, 80, 0.2);
     if (evt.name === 'melt' && evt.splashRadius) {
       for (const m of this.monsters) {
@@ -340,6 +449,14 @@ export class GameScene extends Phaser.Scene {
           count++;
         }
       }
+    } else if (evt.name === 'shatter') {
+      // chill+poison: 清空目标所有状态 + 绿色碎片圈
+      target.statuses.clear();
+      target.slowFactor = 1;
+      target.slowUntil = 0;
+      target.stunnedUntil = 0;
+      const circle = this.add.circle(evt.x, evt.y, 40, 0xa3e635, 0.5).setStrokeStyle(3, 0x65a30d);
+      this.explosionFx.push({ circle, until: now + 350 });
     }
   }
 

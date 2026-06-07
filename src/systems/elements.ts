@@ -1,7 +1,7 @@
 // 元素状态与反应
 import type { Element } from '../config/towers';
 
-export type StatusKind = 'burn' | 'chill' | 'shock';
+export type StatusKind = 'burn' | 'chill' | 'shock' | 'poison';
 
 export interface StatusEffect {
   kind: StatusKind;
@@ -19,12 +19,17 @@ export const ELEMENT_TO_STATUS: Record<Element, StatusKind | null> = {
   frost: 'chill',
   fire: 'burn',
   shock: 'shock',
+  poison: 'poison',
+  holy: null,        // buff (非 debuff, 不走状态 map)
+  dark: null,        // 攻击 buff (不施加 debuff)
 };
 
 // 反应规则: [新施加的状态, 怪物身上已有的状态] -> 反应
 // 对称触发: 任何顺序都触发同一反应
+export type ReactionName = 'melt' | 'overload' | 'supercharge' | 'shatter';
+
 export interface ReactionRule {
-  name: 'melt' | 'overload' | 'supercharge';
+  name: ReactionName;
   a: StatusKind;
   b: StatusKind;
   damage: number;
@@ -42,6 +47,8 @@ export const REACTIONS: ReactionRule[] = [
   { name: 'overload', a: 'burn', b: 'shock', damage: 40, color: 0xfde047, labelZh: '超载' },
   // 雷 + 冰 = 超导(双向)
   { name: 'supercharge', a: 'shock', b: 'chill', damage: 50, stunMs: 600, color: 0x67e8f9, labelZh: '超导' },
+  // 冰 + 毒 = 碎冰(双向, 清空怪物所有状态 + 30 伤害)
+  { name: 'shatter', a: 'chill', b: 'poison', damage: 30, color: 0xa3e635, labelZh: '碎冰' },
 ];
 
 export function findReaction(a: StatusKind, b: StatusKind): ReactionRule | null {
@@ -100,6 +107,10 @@ export function tickStatus(
     }
     present.add(k);
     if (k === 'burn' && eff.dps) {
+      const d = eff.dps * (dtMs / 1000);
+      monster.takeDamage(d);
+    }
+    if (k === 'poison' && eff.dps) {
       const d = eff.dps * (dtMs / 1000);
       monster.takeDamage(d);
     }

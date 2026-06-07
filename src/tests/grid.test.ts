@@ -52,19 +52,18 @@ describe('LEVELS configuration', () => {
   });
 });
 
-describe('levelScale', () => {
-  it('level 1 (idx 0) has minimal scaling', () => {
+describe('levelScale (exponential)', () => {
+  it('level 1 (idx 0) is baseline 1.0x', () => {
     const s = levelScale(0);
-    expect(s.hpMul).toBeCloseTo(1.12, 2);
-    expect(s.speedMul).toBeCloseTo(1.05, 2);
-    expect(s.damageMul).toBeCloseTo(1.08, 2);
-    expect(s.bountyMul).toBeCloseTo(1.06, 2);
+    expect(s.hpMul).toBeCloseTo(1.0, 2);
+    expect(s.speedMul).toBeCloseTo(1.0, 2);
+    expect(s.damageMul).toBeCloseTo(1.0, 2);
+    expect(s.bountyMul).toBeCloseTo(1.0, 2);
   });
-  it('level 10 (idx 9) has 2.2x hp', () => {
+  it('level 10 (idx 9) has ~4.4x hp (exponential)', () => {
     const s = levelScale(9);
-    expect(s.hpMul).toBeCloseTo(2.20, 2);
-    expect(s.speedMul).toBeCloseTo(1.50, 2);
-    expect(s.damageMul).toBeCloseTo(1.80, 2);
+    expect(s.hpMul).toBeCloseTo(4.43, 1);
+    expect(s.damageMul).toBeCloseTo(2.77, 1);
   });
   it('difficulty scales monotonically with level', () => {
     let prev = 0;

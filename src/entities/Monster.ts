@@ -38,6 +38,7 @@ export class Monster {
   private slowTint: Phaser.GameObjects.Arc;
   private burnTint: Phaser.GameObjects.Arc;
   private shockTint: Phaser.GameObjects.Arc;
+  private poisonTint: Phaser.GameObjects.Arc;
   private reactionGlow: Phaser.GameObjects.Arc | null = null;
   private reactionText: Phaser.GameObjects.Text | null = null;
   private reactionUntil = 0;
@@ -68,13 +69,14 @@ export class Monster {
     this.slowTint = scene.add.circle(0, 0, this.radius + 2, 0xbae6fd, 0);
     this.burnTint = scene.add.circle(0, 0, this.radius + 2, 0xfb923c, 0);
     this.shockTint = scene.add.circle(0, 0, this.radius + 2, 0xe9d5ff, 0);
+    this.poisonTint = scene.add.circle(0, 0, this.radius + 2, 0x84cc16, 0);
     this.hpBg = scene.add.rectangle(0, -this.radius - 6, this.radius * 2, 3, 0x000000, 0.6).setOrigin(0.5);
     this.hpBar = scene.add.rectangle(0, -this.radius - 6, this.radius * 2, 3, 0x4ade80).setOrigin(0.5);
     const emojiSize = Math.max(12, this.radius * 1.7);
     this.emojiText = scene.add.text(0, 0, cfg.emoji, {
       fontSize: `${emojiSize}px`,
     }).setOrigin(0.5);
-    this.container.add([this.body, this.slowTint, this.burnTint, this.shockTint, this.emojiText, this.hpBg, this.hpBar]);
+    this.container.add([this.body, this.slowTint, this.burnTint, this.shockTint, this.poisonTint, this.emojiText, this.hpBg, this.hpBar]);
     // 出生弹入动画
     this.container.setScale(0);
     popIn(this.container, 350);
@@ -160,6 +162,7 @@ export class Monster {
     this.slowTint.setFillStyle(0xbae6fd, present.has('chill') ? 0.45 : 0);
     this.burnTint.setFillStyle(0xfb923c, present.has('burn') ? 0.45 : 0);
     this.shockTint.setFillStyle(0xe9d5ff, present.has('shock') ? 0.45 : 0);
+    this.poisonTint.setFillStyle(0x84cc16, present.has('poison') ? 0.45 : 0);
     if (this.reactionGlow && Date.now() > this.reactionUntil) {
       this.reactionGlow.destroy();
       this.reactionGlow = null;
