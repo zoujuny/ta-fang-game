@@ -74,7 +74,7 @@ function pathCoveredCells(paths: Array<Array<{ x: number; y: number }>>): Set<st
   return covered;
 }
 
-function bakeGrid(_base: number[][], paths: Array<Array<{ x: number; y: number }>>): number[][] {
+export function bakeGrid(_base: number[][], paths: Array<Array<{ x: number; y: number }>>): number[][] {
   const g: number[][] = Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(0));
   for (const key of pathCoveredCells(paths)) {
     const [c, r] = key.split(',').map(Number);

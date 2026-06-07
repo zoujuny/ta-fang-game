@@ -68,3 +68,75 @@ describe('Pause menu (pure logic)', () => {
     expect(updateRan).toBe(true);
   });
 });
+
+import {
+  loadUserLevels,
+  saveUserLevels,
+  upsertUserLevel,
+  deleteUserLevel,
+  newUserLevelId,
+  userLevelToDef,
+  type UserLevel,
+} from '../levels/editor';
+
+describe('user level storage (editor)', () => {
+  it('newUserLevelId generates user: prefix', () => {
+    const id = newUserLevelId('test level');
+    expect(id.startsWith('user:')).toBe(true);
+    expect(id.length).toBeGreaterThan(5);
+  });
+
+  it('upsertUserLevel: insert returns array', () => {
+    const u1: UserLevel = {
+      id: 'user:1' as any,
+      name: 'alpha',
+      paths: [[{ col: 0, row: 1 }, { col: 5, row: 1 }, { col: 16, row: 1 }]],
+      createdAt: 1,
+    };
+    const all = upsertUserLevel(u1);
+    expect(Array.isArray(all)).toBe(true);
+  });
+
+  it('userLevelToDef: convert waypoints to pixel coords', () => {
+    const u: UserLevel = {
+      id: 'user:t' as any,
+      name: 't',
+      paths: [[{ col: 0, row: 2 }, { col: 5, row: 2 }, { col: 5, row: 7 }, { col: 16, row: 7 }]],
+      createdAt: 0,
+    };
+    const def = userLevelToDef(u);
+    expect(def.name).toBe('t');
+    expect(def.paths.length).toBe(1);
+    expect(def.paths[0][0]).toEqual({ x: 24, y: 120 });
+    expect(def.paths[0][1]).toEqual({ x: 264, y: 120 });
+    expect(def.paths[0][2]).toEqual({ x: 264, y: 360 });
+    expect(def.paths[0][3]).toEqual({ x: 792, y: 360 });
+  });
+
+  it('userLevelToDef: multi-path', () => {
+    const u: UserLevel = {
+      id: 'user:m' as any,
+      name: 'm',
+      paths: [
+        [{ col: 0, row: 1 }, { col: 16, row: 1 }],
+        [{ col: 0, row: 5 }, { col: 16, row: 5 }],
+      ],
+      createdAt: 0,
+    };
+    const def = userLevelToDef(u);
+    expect(def.paths.length).toBe(2);
+  });
+
+  it('loadUserLevels: Node environment returns empty array', () => {
+    expect(loadUserLevels()).toEqual([]);
+  });
+
+  it('deleteUserLevel: returns array (no crash)', () => {
+    const all = deleteUserLevel('user:1' as any);
+    expect(Array.isArray(all)).toBe(true);
+  });
+
+  it('saveUserLevels: empty input ok', () => {
+    saveUserLevels([]);
+  });
+});

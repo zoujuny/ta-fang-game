@@ -8,6 +8,7 @@ import { createWaveRuntime, tickWaveSpawns, isWaveComplete, type WaveRuntime } f
 import { WAVES } from '../config/monsters';
 import { cameraShake, cameraFlash, spawnBurst } from '../systems/fx';
 import { loadProgress, saveProgress, markCleared } from '../systems/progress';
+import { getAudio } from '../systems/audio';
 
 interface SceneData {
   onState: (s: GameState) => void;
@@ -94,6 +95,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // 检查是否从编辑器加载了用户关卡
+    const editorLevel = (window as unknown as { __editorLoadLevel?: LevelDef }).__editorLoadLevel;
+    if (editorLevel) {
+      (window as unknown as { __editorLoadLevel?: LevelDef }).__editorLoadLevel = undefined;
+      this.state.levelId = editorLevel.id;
+      // 临时注册到 LEVELS (GameScene 用 LEVELS[id])
+      (LEVELS as unknown as Record<string, LevelDef>)[editorLevel.id] = editorLevel;
+    }
     this.level = LEVELS[this.state.levelId];
     this.drawBackground();
     this.drawPaths();
@@ -195,6 +204,7 @@ export class GameScene extends Phaser.Scene {
     const tower = new Tower(this, kind, col, row, col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
     this.towers.push(tower);
     this.state.stats.towersBuilt = this.towers.length;
+    getAudio().build();
     this.emitState();
   }
 
@@ -268,6 +278,7 @@ export class GameScene extends Phaser.Scene {
     if (this.state.gold < cost) return;
     this.state.gold -= cost;
     t.upgrade();
+    getAudio().upgrade();
     this.redrawManage();
     this.emitState();
   }
@@ -279,6 +290,7 @@ export class GameScene extends Phaser.Scene {
     this.towers = this.towers.filter(x => x !== t);
     t.destroy();
     this.state.stats.towersBuilt = this.towers.length;
+    getAudio().sell();
     this.exitManageMode();
     this.emitState();
   }
@@ -294,6 +306,7 @@ export class GameScene extends Phaser.Scene {
     if (this.state.waveIndex >= WAVES.length) return;
     this.wave = createWaveRuntime(this.state.waveIndex, this.time.now);
     this.state.waveInProgress = true;
+    getAudio().waveStart();
     this.emitState();
   }
 
@@ -351,6 +364,7 @@ export class GameScene extends Phaser.Scene {
         const path = this.level.paths[pathIdx];
         const m = new Monster(this, s.kind, path, pathIdx, scale);
         this.monsters.push(m);
+        if (s.kind === 'boss') getAudio().bossSpawn();
       }
     }
 
@@ -432,7 +446,10 @@ export class GameScene extends Phaser.Scene {
       this.state.gold += r;
       this.state.stats.goldEarned += r;
     }
-    if (livesLost) this.state.lives -= Math.round(livesLost);
+    if (livesLost) {
+      this.state.lives -= Math.round(livesLost);
+      getAudio().monsterReachedEnd();
+    }
     this.state.stats.livesLeft = this.state.lives;
     this.state.stats.kills += kills;
 
@@ -446,6 +463,7 @@ export class GameScene extends Phaser.Scene {
       if (this.state.waveIndex >= WAVES.length) {
         this.state.victory = true;
         this.state.gameOver = true;
+        getAudio().victory();
         // 写存档: 解锁下一关
         const idx0 = LEVEL_ORDER.indexOf(this.state.levelId);
         if (idx0 >= 0) {
@@ -462,6 +480,7 @@ export class GameScene extends Phaser.Scene {
     if (this.state.lives <= 0) {
       this.state.lives = 0;
       this.state.gameOver = true;
+      getAudio().defeat();
     } else if (!Number.isInteger(this.state.lives)) {
       this.state.lives = Math.round(this.state.lives);
     }

@@ -3,6 +3,7 @@ import { distanceAlongPath, totalPathLength } from '../systems/path';
 import { effectiveDamage } from '../systems/combat';
 import { tickStatus, type StatusEffect, type StatusKind } from '../systems/elements';
 import { spawnBurst, popIn, shrinkOut, spawnFloater } from '../systems/fx';
+import { getAudio } from '../systems/audio';
 
 export class Monster {
   public kind: MonsterKind;
@@ -193,6 +194,7 @@ export class Monster {
     this.deathFxPlayed = true;
     // 死亡: 缩到 0 + 4 个颜色碎片 + 金币飘字
     spawnBurst(this.scene, { x: this.x, y: this.y, count: 6, color: this.color, speed: 100, life: 400, size: 3 });
+    getAudio().monsterDeath();
     if (this.bounty > 0) {
       spawnFloater(this.scene, {
         x: this.x,

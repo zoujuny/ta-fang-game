@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GameScene, type GameState } from './scenes/GameScene';
+import { EditorScene } from './scenes/EditorScene';
 import { GAME_WIDTH, GAME_HEIGHT, LEVELS, LEVEL_ORDER as LEVELS_ORDER, type LevelId } from './config/grid';
 import { loadProgress, isLevelUnlocked } from './systems/progress';
 import { TOWERS, type TowerKind } from './config/towers';
@@ -36,6 +37,21 @@ class BootScene extends Phaser.Scene {
     });
     document.getElementById('reset-btn')?.addEventListener('click', () => {
       this.ensureGameScene()?.resetCurrentLevel();
+    });
+    document.getElementById('editor-btn')?.addEventListener('click', () => {
+      const editor = this.scene.get('EditorScene') as EditorScene;
+      editor?.scene.start();
+    });
+    const audioBtn = document.getElementById('audio-btn') as HTMLButtonElement | null;
+    audioBtn?.addEventListener('click', () => {
+      // 懒加载以避开启动时无 AudioContext
+      import('./systems/audio').then(({ getAudio }) => {
+        const a = getAudio();
+        const newMuted = !a.isMuted();
+        a.setMuted(newMuted);
+        if (audioBtn) audioBtn.textContent = newMuted ? '🔇 静音' : '🔊 音';
+        if (!newMuted) a.fire('phys'); // 解静音时小测试音
+      });
     });
     document.querySelectorAll('.lvl-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -127,7 +143,7 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   height: GAME_HEIGHT,
   parent: 'game',
   backgroundColor: '#1a1a2e',
-  scene: [BootScene, GameScene],
+  scene: [BootScene, GameScene, EditorScene],
 };
 
 new Phaser.Game(gameConfig);

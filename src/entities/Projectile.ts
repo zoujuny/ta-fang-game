@@ -3,6 +3,7 @@ import { applySplash } from '../systems/combat';
 import type { Element } from '../config/towers';
 import { pickReactionByElement, ELEMENT_TO_STATUS, type StatusEffect } from '../systems/elements';
 import { spawnFloater } from '../systems/fx';
+import { getAudio } from '../systems/audio';
 
 export interface ProjectileOptions {
   splashRadius: number;
@@ -87,6 +88,7 @@ export class Projectile {
 
       const beforeHp = this.target.hp;
       this.target.takeDamage(finalDmg);
+      getAudio().hit();
       const dealt = Math.max(0, beforeHp - this.target.hp);
       if (dealt > 0) {
         spawnFloater(this.scene, {
@@ -150,6 +152,7 @@ export class Projectile {
           this.target.stunnedUntil = now + r.stunMs;
         }
         this.target.triggerReaction(r.name, 800, now);
+        getAudio().reaction(r.name);
         // 反应消耗涉及的两个状态, 但保留这次新施加的那个(让"火打到已冰"后, 仍有 burn 状态)
         const newStatus = ELEMENT_TO_STATUS[this.options.element];
         const a = r.a, b = r.b;

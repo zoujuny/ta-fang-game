@@ -3,6 +3,7 @@ import { inRange, pickTarget } from '../systems/combat';
 import { Monster } from './Monster';
 import { Projectile } from './Projectile';
 import { spawnMuzzleFlash, spawnBurst } from '../systems/fx';
+import { getAudio } from '../systems/audio';
 
 // 每级加成: 伤害 × 1.5, 射程 × 1.2, 射速 × 0.9
 export function levelMultiplier(level: number): { damage: number; range: number; fireInterval: number } {
@@ -196,6 +197,7 @@ export class Tower {
     const my = this.y + sin * muzzleDist;
     spawnMuzzleFlash(scene, mx, my, this.color, 10);
     spawnBurst(scene, { x: mx, y: my, count: 6, color: this.projectileColor, speed: 80, life: 280, size: 2 });
+    getAudio().fire(this.element);
     return new Projectile(scene, mx, my, this.target, this.projectileSpeed, this.damage, this.projectileColor, {
       splashRadius: this.splashRadius,
       slowFactor: this.slowFactor,
